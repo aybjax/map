@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script type="text/javascript" src="proj4.js"></script>
+    <script type="text/javascript" src="proj4leaflet.js"></script>
+    <script type="text/javascript" src="NonTiledLayer.js"></script>
+    <script type="text/javascript" src="geotiff.js"></script>
+    <script type="text/javascript" src="plotty.min.js"></script>
+    <script type="text/javascript" src="leaflet-geotiff.js"></script>
+    <script type="text/javascript" src="leaflet-geotiff-plotty.js"></script>
+    <script type="text/javascript" src="NonTiledLayer.WCS.js"></script>
+    <script type="text/javascript" src="SingleTile.js"></script>
+    <script type="text/javascript" src="leaflet.wms.js"></script>
+    <script type="text/javascript" src="L.Control.Layers.Tree.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="L.Control.Layers.Tree.css" />
+    <title>Целиноградский район</title>
+    <style type="text/css">
+        body { overflow: hidden; }
+		.navbar-brand { display: flex; align-items: center; padding: 0 15px; background-color: white;}
+		.navbar-brand > img {
+		    height: 40px;
+		    width: 88px;
+		    object-fit: cover;
+		    object-position: right;
+		}
+		.navbar { background-color: #116aab; }
+		.navbar-brand:hover, .navbar-brand:focus {
+			background-color: white !important;
+		}
+		.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+		    color: #fff;
+		    background-color: #0093ff;
+		}
+		.navbar-default .navbar-nav > li > a {
+		    color: #fff;
+		}
+		.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+		    color: #fff;
+		    background-color: #5bbaff;
+		}
+      .navbar-offset { margin-top: 50px; }
+      .map-title { display: flex; align-items: center; height: 50px; padding: 0 15px; color: white; font-size: medium; font-weight: bold;}
+      #map { position: absolute; top: 100px; bottom: 0px; left: 0px; right: 0px; }
+      #map .ol-zoom { font-size: 1.2em; }
+
+      .zoom-top-opened-sidebar { margin-top: 5px; }
+      .zoom-top-collapsed { margin-top: 45px; }
+
+      .mini-submenu{
+        display:none;  
+        background-color: rgba(255, 255, 255, 0.46);
+        border: 1px solid rgba(0, 0, 0, 0.9);
+        border-radius: 4px;
+        padding: 9px;  
+        /*position: relative;*/
+        width: 42px;
+        text-align: center;
+      }
+
+      .mini-submenu-left {
+        position: absolute;
+        top: 60px;
+        left: .5em;
+        z-index: 40;
+      }
+
+      #map { z-index: 35; }
+
+      .sidebar { z-index: 45; }
+
+      .main-row { position: relative; top: 0; }
+
+      .mini-submenu:hover{
+        cursor: pointer;
+      }
+
+      .slide-submenu{
+        background: rgba(0, 0, 0, 0.45);
+        display: inline-block;
+        padding: 0 8px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      
+      .ol-popup {
+        position: absolute;
+        background-color: white;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -50px;
+        min-width: 280px;
+      }
+      .ol-popup:after, .ol-popup:before {
+        top: 100%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+      }
+      .ol-popup:after {
+        border-top-color: white;
+        border-width: 10px;
+        left: 48px;
+        margin-left: -10px;
+      }
+      .ol-popup:before {
+        border-top-color: #cccccc;
+        border-width: 11px;
+        left: 48px;
+        margin-left: -11px;
+      }
+      .ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 2px;
+        right: 8px;
+      }
+      .ol-popup-closer:after {
+        content: "✖";
+      }
+      .legend {
+	      position: absolute;
+	      bottom: 50px;
+	      left: 5px;
+	      padding: 10px;
+		  border: solid 2px #116aab;
+	      z-index: 999;
+	      background: white;
+      }
+      .legend h4 {
+	      margin-top: 0;
+      }
+      .legend ul {
+	      list-style: none;
+	      padding: 0;
+      }
+      .legend li {
+	      margin-bottom: 5px;
+      }
+      .legend li div {
+		    height: 15px;
+		    width: 15px;
+		    border: solid 1px black;
+		    display: inline-block;
+		}
+		.legend div.used {
+			background: #00a457;
+		}
+		.legend div.unused {
+			background: #ffee30;
+		}
+      .legend li.grad {
+	      margin-top: 12px;
+      }
+      .legend span {
+	      color: rgba(0, 0, 0, 0.6)
+      }
+      .img-bound {
+	      height: 20px;
+      }
+      .img-legend {
+	      height: 50px;
+	      margin-top: 5px;
+      }
+      .img-legend-2 {
+	      height: 72px;
+	      margin-top: 5px;
+      }
+
+
+    </style>
+    <script type="text/javascript" src="L.TileLayer.BetterWMS.js"></script>
+    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
+        <div class="container-fluid">
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#"><img src="assets/logo.png" alt=""></a>
+          </div>
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="map-title"><span>Целиноградский район Акмолинской области (2019-2020 гг.)</span></div>
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+	             <li><a href="/tse.html">Карта использования земель</a></li>
+	             <li class="active"><a href="/tse2.html">NDVI</a></li>	 	     
+	             <li><a href="/tse3.html">Рекомендации</a></li>	            
+            </ul>
+            </div>
+            </div><!-- /.container-fluid -->
+        </div>
+      </nav>
+      <div class="navbar-offset"></div>
+      <div id="map">
+      </div>
+	  <div id="popup" class="ol-popup">
+	    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+	    <div id="popup-content"></div>
+	  </div>
+	  <div class="legend">
+		  <h4>Условные обозначения</h4>
+		  <ul>
+		  	<li class="grad"><strong>NDVI</strong><br><img src="/assets/NDVI.png" alt="" class="img-legend"></li>
+		  </ul>
+	  </div>
+            <div class="mini-submenu mini-submenu-left pull-left">
+        <i class="fa fa-list-alt"></i>
+      </div>
+    </div>
+    <script>
+		var map = L.map('map').setView([50.972265, 71.419373], 9);
+		var Esri_WorldGrayCanvas = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ | Разработчик: Кашкимбаева Нуржамал Мейркуловна',
+	maxZoom: 16
+}).addTo(map);
+		
+		var url = 'http://51.68.138.243:8080/geoserver/doc/wms?';
+		var options = {'transparent': true, 'format': 'image/png8', 'info_format': 'text/html'};
+		var source = L.WMS.source("http://51.68.138.243:8080/geoserver/doc/wms", options);
+		var layer001 = source.getLayer('doc:tse-all, doc:tse-unused');
+		var layer002 = source.getLayer('doc:tse-all, doc:201905');
+		var layer003 = source.getLayer('doc:tse-all, doc:201907');
+		var layer004 = source.getLayer('doc:tse-all, doc:201909');
+		var layer005 = source.getLayer('doc:tse-all, doc:202005');
+		var layer006 = source.getLayer('doc:tse-all, doc:202007');
+		var layer007 = source.getLayer('doc:tse-all, doc:202009');
+		
+		var baseTree = {
+			label: 'NDVI',
+		    children: [
+			{ label: 'NDVI Май 2019', layer: layer002 },
+			{ label: 'NDVI Июль 2019', layer: layer003 },
+			{ label: 'NDVI Сентябрь 2019', layer: layer004 },
+			{ label: 'NDVI Май 2020', layer: layer005 },
+			{ label: 'NDVI Июль 2020', layer: layer006 },
+			{ label: 'NDVI Сентябрь 2020', layer: layer007 },
+			]
+		};
+		L.control.layers.tree(baseTree).addTo(map); 
+				
+		// show the scale bar on the lower left corner
+		L.control.scale().addTo(map);
+		
+		
+	</script>
+  </body>
+</html>
