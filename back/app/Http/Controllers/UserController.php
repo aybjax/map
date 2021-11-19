@@ -57,13 +57,17 @@ class UserController extends Controller
 
         if(Auth::attempt($credentials)) {
             $token = $request->user()->createToken($request->json('username'));
-            return response()->json(['token' => $token->plainTextToken]);
+            return response()->json([
+                'token' => $token->plainTextToken,
+                'is_admin' => $request->user()->is_admin ? true : false,
+                'username' => $request->user()->username,
+            ]);
 
         }
 
         return response()->json([
             'token' => '',
-            'username' => 'Пользователь не найден',
+            'username' => 'Проверьте имя и пароль',
         ], 400);
     }
 }

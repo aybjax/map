@@ -16,10 +16,9 @@ class CreateFieldsTable extends Migration
         Schema::create('fields', function (Blueprint $table) {
             $table->id();
             $table->string('type');
-            $table->string('planted')->nullable();
+            $table->foreignId('culture_id')->nullable();
             $table->string('comment')->nullable();
             $table->jsonb('geometry')->nullable();
-            $table->boolean('confirmed')->default(0);
             $table->timestamps();
         });
     }

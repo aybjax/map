@@ -1,5 +1,15 @@
 .login--card {
-  width: 550px; }
+  width: 550px;
+}
 
 .width100 {
-  width: 100%; }
+  width: 100%;
+}
+
+input.p-inputtext.p-component.p-filled.p-password-input {
+  width: 100% !important;
+}
+
+input.p-inputtext.p-component.p-password-input {
+  width: 100% !important;
+}

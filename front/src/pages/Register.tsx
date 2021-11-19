@@ -6,8 +6,10 @@ import { classNames } from "primereact/utils";
 import { Button } from "primereact/button";
 import { fetchApi } from "../utils/fetch";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { User } from "../utils/user";
+import { Toast } from "primereact/toast";
+import { Password } from "primereact/password";
 
 interface FieldType {
   username: string;
@@ -17,6 +19,7 @@ interface FieldType {
 
 export function Register() {
   const navigate = useNavigate();
+  const toast = useRef(null);
 
   useEffect(() => {
     const user = User.getInstance();
@@ -68,8 +71,20 @@ export function Register() {
       }
 
       if (response.ok) {
-        navigate("/login");
+        if (toast.current) {
+          //@ts-ignore
+          toast.current.show({
+            severity: "success",
+            summary: "Регистрация успешна",
+            life: 3000,
+          });
+        }
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
         formik.resetForm();
+
         return;
       }
 
@@ -121,14 +136,17 @@ export function Register() {
             {getFormErrorMessage("username")}
           </div>
           <div className="p-float-label mb-6">
-            <InputText
+            <Password
               id="password"
+              name="password"
               className={
                 (classNames({ "p-invalid": isFormFieldValid("password") }),
                 "width100")
               }
               value={formik.values.password}
               onChange={formik.handleChange}
+              toggleMask
+              feedback={false}
             />
             <label
               htmlFor="password"
@@ -142,14 +160,17 @@ export function Register() {
           </div>
 
           <div className="p-float-label mb-6">
-            <InputText
+            <Password
               id="password2"
+              name="password2"
               className={
                 (classNames({ "p-invalid": isFormFieldValid("password2") }),
                 "width100")
               }
               value={formik.values.password2}
               onChange={formik.handleChange}
+              toggleMask
+              feedback={false}
             />
             <label
               htmlFor="password2"
@@ -167,6 +188,7 @@ export function Register() {
           </Link>
         </form>
       </Card>
+      <Toast ref={toast} />
     </div>
   );
 }

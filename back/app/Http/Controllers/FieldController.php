@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Field;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Helpers\CultureStrategy;
+use Illuminate\Http\JsonResponse;
+use App\Models\CultureField;
 
 class FieldController extends Controller
 {
@@ -27,48 +29,141 @@ class FieldController extends Controller
         ]);
     }
 
+
+
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Summary of suggestCulture
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function suggestCulture(Request $request): JsonResponse
     {
-        //
+        $suggested_id = $request->json('culture_id', 0);
+        $field_id = $request->json('field_id', 0);
+
+        if($suggested_id === 0 || $field_id === 0) {
+            return response()->json([
+                'error' => 'Культура не выбрана',
+            ]); 
+        }
+
+        $field = Field::find($field_id);
+
+        $current_culture_id = $field?->culture?->id ?? 0;
+
+        $strategy = new CultureStrategy(
+            suggested_culture_id: $suggested_id,
+            current_culture_id: $current_culture_id,
+        );
+
+        if(! $strategy->check()) {
+            return response()->json([
+                'error' => 'Данное действие не может быть одобрено',
+            ]);
+        }
+
+        if(auth()->user()->is_admin) {
+            $field->culture_id = $suggested_id;
+            $field->comment = $request->json('comment');
+            $field->save();
+
+            return response()->json([
+                'success' => 'Изменения введены',
+            ]);
+        }
+
+        CultureField::create([
+            'culture_id' => $suggested_id,
+            'field_id' => $field_id,
+            'user_id' => $request->user()->id,
+            'comment' => $request->json('comment'),
+        ]);
+
+        return response()->json([
+            'success' => 'Запрос отправлен админу',
+        ]);
+    }
+
+    public function allSuggested(Request $request): JsonResponse
+    {
+        if(! $request->user()->is_admin) {
+            return response()->json([]);
+        }
+
+        $suggested = CultureField::all();
+
+        return response()->json($suggested);
     }
 
     /**
      * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param Field $field
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(Field $field): JsonResponse
     {
-        //
+        $response = $field->properties;
+        return response()->json($response);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function getSuggested(CultureField $culture_field): JsonResponse
     {
-        //
+        return response()->json($culture_field);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function deleteSuggested(CultureField $culture_field): JsonResponse
     {
-        //
+        $culture_field->delete();
+
+        return response()->json([
+            'success' => 'Запрос удален',
+        ]);
+    }
+
+    public function acceptSuggested(CultureField $culture_field): JsonResponse
+    {
+        if(! auth()->user()->is_admin) {
+            return response()->json([
+                'error' => 'У Вас нет прав',
+            ]);
+        }
+
+        $suggested_id = $culture_field->culture_id;
+        $field_id = $culture_field->field_id;
+
+        if(! ($suggested_id && $field_id)) {
+            return response()->json([
+                'error' => 'Возможно культура или участок удален',
+            ]); 
+        }
+
+        $strategy = new CultureStrategy(
+            suggested_culture_id: $suggested_id ?? 0,
+            current_culture_id: $culture_field->field?->culture_id ?? 0,
+        );
+
+        if(! $strategy->check()) {
+            return response()->json([
+                'error' => 'Данное действие не может быть одобрено. Возможно данные изменились',
+            ]);
+        }
+
+        $field = Field::find($culture_field->field_id);
+
+        if(! $field) {
+            return response()->json([
+                'error' => 'Участок удален. Действие остановлено',
+            ]);
+        }
+
+        $field->culture_id = $culture_field->culture_id;
+        $field->comment = $culture_field->comment;
+        $field->save();
+
+        $culture_field->delete();
+
+        return response()->json([
+            'success' => 'Культура посажено',
+        ]);
     }
 }

@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,6 +15,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        $this->seedAdmin();
+
+        $this->call([
+            CultureSeeder::class,
+            LayerSeeder::class,
+        ]);
+    }
+
+    protected function seedAdmin()
+    {
+        $password = Hash::make('админ');
+
+        User::create([
+            'username' => 'админ',
+            'password' => $password,
+            'is_admin' => 1,
+        ]);
     }
 }

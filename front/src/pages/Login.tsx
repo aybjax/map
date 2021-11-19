@@ -7,7 +7,9 @@ import { Button } from "primereact/button";
 import { fetchApi } from "../utils/fetch";
 import { Link, useNavigate } from "react-router-dom";
 import { User } from "../utils/user";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Toast } from "primereact/toast";
+import { Password } from "primereact/password";
 
 interface FieldType {
   username: string;
@@ -16,6 +18,7 @@ interface FieldType {
 
 export function Login() {
   const navigate = useNavigate();
+  const toast = useRef(null);
 
   useEffect(() => {
     const user = User.getInstance();
@@ -57,11 +60,29 @@ export function Login() {
       if (response.ok) {
         const body = await response.json();
         const token = body.token;
+        const is_admin = body.is_admin;
+        const username = body.username;
 
         const user = User.getInstance();
-        user.token = token;
+        user.userinfo = {
+          token,
+          is_admin,
+          username,
+        };
 
-        navigate("/");
+        if (toast.current) {
+          //@ts-ignore
+          toast.current.show({
+            severity: "success",
+            summary: "Пользователь найден",
+            life: 3000,
+          });
+        }
+
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
+
         formik.resetForm();
         return;
       }
@@ -114,14 +135,17 @@ export function Login() {
             {getFormErrorMessage("username")}
           </div>
           <div className="p-float-label mb-6">
-            <InputText
+            <Password
               id="password"
+              name="password"
               className={
                 (classNames({ "p-invalid": isFormFieldValid("password") }),
                 "width100")
               }
               value={formik.values.password}
               onChange={formik.handleChange}
+              toggleMask
+              feedback={false}
             />
             <label
               htmlFor="password"
@@ -139,6 +163,7 @@ export function Login() {
           </Link>
         </form>
       </Card>
+      <Toast ref={toast} />
     </div>
   );
 }
