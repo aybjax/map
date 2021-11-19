@@ -7,6 +7,7 @@ import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
 import "./Confirm.css";
 import { Toast } from "primereact/toast";
+import { User } from "../utils/user";
 
 interface PrepResponse {
   preps: {
@@ -18,6 +19,7 @@ interface PrepResponse {
 interface ConfirmProp {
   id: number;
   reset: () => void;
+  initLayers: () => void;
 }
 
 interface FieldResponse {
@@ -94,6 +96,12 @@ export function Confirm(props: ConfirmProp) {
               summary: response.success,
               life: 3000,
             });
+          }
+
+          const user = User.getInstance();
+
+          if (user.is_admin) {
+            props.initLayers();
           }
 
           setTimeout(props.reset, 1000);

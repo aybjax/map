@@ -9,6 +9,7 @@ import { Toast } from "primereact/toast";
 interface SuggestedProp {
   id: number;
   reset: () => void;
+  initLayers: () => void;
 }
 
 interface FieldResponse {
@@ -114,6 +115,7 @@ export function Suggested(props: SuggestedProp) {
             });
           }
 
+          props.initLayers();
           setTimeout(props.reset, 1000);
         }
       });

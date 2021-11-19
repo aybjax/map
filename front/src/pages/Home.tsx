@@ -50,6 +50,15 @@ export function Home() {
     }, 500);
   };
 
+  const initLayers = () => {
+    setLayers(null);
+    fetchApi("field")
+      .then((response) => response.json())
+      .then((fields) => {
+        setLayers(fields);
+      });
+  };
+
   useEffect(() => {
     const user = User.getInstance();
 
@@ -75,11 +84,7 @@ export function Home() {
   }, [messagesVisible]);
 
   useEffect(() => {
-    fetchApi("field")
-      .then((response) => response.json())
-      .then((fields) => {
-        setLayers(fields);
-      });
+    initLayers();
   }, []);
 
   // @ts-ignore
@@ -100,40 +105,11 @@ export function Home() {
             onEachFeature={(field, layer) => {
               // layer.bindPopup("hello");
               coordinates[field.properties.id] = layer.getBounds().getCenter();
-              switch (field.properties.planted_id) {
-                case 1:
-                  layer.options.fillColor = "#EF9A9A";
-                  break;
-                case 2:
-                  layer.options.fillColor = "#F48FB1";
-                  break;
-                case 3:
-                  layer.options.fillColor = "#CE93D8";
-                  break;
-                case 4:
-                  layer.options.fillColor = "#B39DDB";
-                  break;
-                case 5:
-                  layer.options.fillColor = "#9FA8DA";
-                  break;
-                case 6:
-                  layer.options.fillColor = "#90CAF9";
-                  break;
-                case 7:
-                  layer.options.fillColor = "#81D4FA";
-                  break;
-                case 8:
-                  layer.options.fillColor = "#80CBC4";
-                  break;
-                case 9:
-                  layer.options.fillColor = "#A5D6A7";
-                  break;
-                case 10:
-                  layer.options.fillColor = "#212121";
-                  break;
-                default:
-                  layer.options.fillColor = "cadde3";
-              }
+              layer.options.fillOpacity = 1;
+              const color = field.properties.color
+                ? field.properties.color
+                : "#CADDE3";
+              layer.options.fillColor = color;
 
               layer.on({
                 click: (event) => {
@@ -141,69 +117,17 @@ export function Home() {
                 },
                 mouseover: (event) => {
                   event.target.setStyle({
-                    fillColor: "#EF9A9A",
+                    fillColor: "yellow",
                   });
                 },
                 mouseout: (event) => {
-                  // event.target.setStyle({
-                  //   fillColor: "cadde3",
-                  // });
-                  switch (field.properties.planted_id) {
-                    case 1:
-                      event.target.setStyle({
-                        fillColor: "#EF9A9A",
-                      });
-                      break;
-                    case 2:
-                      event.target.setStyle({
-                        fillColor: "#F48FB1",
-                      });
-                      break;
-                    case 3:
-                      event.target.setStyle({
-                        fillColor: "#CE93D8",
-                      });
-                      break;
-                    case 4:
-                      event.target.setStyle({
-                        fillColor: "#B39DDB",
-                      });
-                      break;
-                    case 5:
-                      event.target.setStyle({
-                        fillColor: "#9FA8DA",
-                      });
-                      break;
-                    case 6:
-                      event.target.setStyle({
-                        fillColor: "#90CAF9",
-                      });
-                      break;
-                    case 7:
-                      event.target.setStyle({
-                        fillColor: "#81D4FA",
-                      });
-                      break;
-                    case 8:
-                      event.target.setStyle({
-                        fillColor: "#80CBC4",
-                      });
-                      break;
-                    case 9:
-                      event.target.setStyle({
-                        fillColor: "#A5D6A7",
-                      });
-                      break;
-                    case 10:
-                      event.target.setStyle({
-                        fillColor: "#212121",
-                      });
-                      break;
-                    default:
-                      event.target.setStyle({
-                        fillColor: "cadde3",
-                      });
-                  }
+                  const color = field.properties.color
+                    ? field.properties.color
+                    : "#CADDE3";
+                  event.target.setStyle({
+                    fillOpacity: 1,
+                    fillColor: color,
+                  });
                 },
               });
             }}
@@ -212,8 +136,12 @@ export function Home() {
           </GeoJSON>
         )}
       </MapContainer>
-      <Confirm id={id} reset={() => setId(0)} />
-      <Suggested id={suggestedId} reset={() => setSuggestedId(0)} />
+      <Confirm id={id} reset={() => setId(0)} initLayers={initLayers} />
+      <Suggested
+        id={suggestedId}
+        reset={() => setSuggestedId(0)}
+        initLayers={initLayers}
+      />
       <Sidebar
         visible={messagesVisible}
         position="right"

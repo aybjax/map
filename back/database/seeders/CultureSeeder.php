@@ -17,52 +17,52 @@ class CultureSeeder extends Seeder
         Culture::create([
             'id' => 1,
             'name' => 'Пар',
-            'color' => '#EF9A9A',
+            'color' => '#B71C1C',
         ]);
         Culture::create([
             'id' => 2,
             'name' => 'Пшеница',
-            'color' => '#F48FB1',
+            'color' => '#880E4F',
         ]);
         Culture::create([
             'id' => 3,
             'name' => 'Кукуруза',
-            'color' => '#CE93D8',
+            'color' => '#880E4F',
         ]);
         Culture::create([
             'id' => 4,
             'name' => 'Соя',
-            'color' => '#B39DDB',
+            'color' => '#311B92',
         ]);
         Culture::create([
             'id' => 5,
             'name' => 'Горох',
-            'color' => '#9FA8DA',
+            'color' => '#01579B',
         ]);
         Culture::create([
             'id' => 6,
             'name' => 'Рапс',
-            'color' => '#90CAF9',
+            'color' => '#01579B',
         ]);
         Culture::create([
             'id' => 7,
             'name' => 'Ячмень',
-            'color' => '#81D4FA',
+            'color' => '#1B5E20',
         ]);
         Culture::create([
             'id' => 8,
             'name' => 'Сахарная свекла',
-            'color' => '#80CBC4',
+            'color' => '#827717',
         ]);
         Culture::create([
             'id' => 9,
             'name' => 'Подсолнечник',
-            'color' => '#A5D6A7',
+            'color' => '#F57F17',
         ]);
         Culture::create([
             'id' => 10,
             'name' => 'иные угодья (не сельхоз угодия (водоемы, дорога, строение))',
-            'color' => '#212121',
+            'color' => '#000000',
         ]);
     }
 }

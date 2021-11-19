@@ -12,7 +12,7 @@ class Field extends Model
     use HasFactory;
 
     protected $fillable = ['id', 'data', 'color'];
-    protected $hidden = ['id', 'planted_id', 'comment', 'created_at', 'updated_at'];
+    protected $hidden = ['id', 'comment', 'created_at', 'updated_at'];
     protected $appends = ['properties'];
     protected $casts = [
         'geometry' => 'array',
@@ -35,6 +35,7 @@ class Field extends Model
             planted: $this->culture?->name ?? '',
             planted_id: $this->attributes['culture_id'],
             comment: $this->attributes['comment'],
+            color: $this->culture?->color ?? '',
         );
     }
 
