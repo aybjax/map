@@ -154,7 +154,7 @@ export function Home() {
           </div>
         ) : messages.length > 0 ? (
           messages.map((message) => (
-            <div className="flex mb-6">
+            <div className="flex mb-6" key={message.id}>
               <div
                 className="flex-grow p-1 hover:bg-gray-100"
                 onClick={() => {
