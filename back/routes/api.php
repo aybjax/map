@@ -26,9 +26,17 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/field', [FieldController::class , 'index'])
         ->name('field.index');
 
-
     Route::get('/field/{field}', [FieldController::class , 'show'])
         ->name('field.show');
+
+    Route::post('/field/seed', [FieldController::class , 'seedFields'])
+        ->name('field.seedFields');
+
+    Route::post('/field/reset', [FieldController::class , 'resetFields'])
+            ->name('field.resetFields');
+
+    Route::delete('/field/{field}', [FieldController::class , 'destroy'])
+        ->name('field.destroy');
     
     Route::get('/culture', [CultureController::class , 'index'])
             ->name('culture.index');

@@ -70,10 +70,12 @@ export function Suggested(props: SuggestedProp) {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [content, setContent] = useState<FieldResponse | null>(null);
+  const [loader, setLoader] = useState(false);
 
   const checkCulture = () => {
     setError("");
     setSuccess("");
+    setLoader(true);
     const payload = {
       field_id: content?.field_id,
       culture_id: content?.culture_id,
@@ -84,24 +86,30 @@ export function Suggested(props: SuggestedProp) {
     })
       .then((response) => response.json())
       .then((response: { success?: string; error?: string }) => {
+        setLoader(false);
         if (response.error) {
           setError(response.error);
         }
         if (response.success) {
           setSuccess(response.success);
         }
+      })
+      .catch((_) => {
+        setLoader(false);
       });
   };
 
   const acceptSuggestion = () => {
     setError("");
     setSuccess("");
+    setLoader(true);
 
     fetchApi("suggestion/" + props.id, {
       method: "post",
     })
       .then((response) => response.json())
       .then((response: { success?: string; error?: string }) => {
+        setLoader(false);
         if (response.error) {
           setError(response.error);
         }
@@ -118,18 +126,23 @@ export function Suggested(props: SuggestedProp) {
           props.initLayers();
           setTimeout(props.reset, 1000);
         }
+      })
+      .catch((_) => {
+        setLoader(false);
       });
   };
 
   const deleteSuggestion = () => {
     setError("");
     setSuccess("");
+    setLoader(false);
 
     fetchApi("/suggestion/" + props.id, {
       method: "delete",
     })
       .then((response) => response.json())
       .then((response: { success?: string; error?: string }) => {
+        setLoader(true);
         if (response.error) {
           setError(response.error);
         }
@@ -145,6 +158,9 @@ export function Suggested(props: SuggestedProp) {
 
           setTimeout(props.reset, 1000);
         }
+      })
+      .catch((_) => {
+        setLoader(false);
       });
   };
 
@@ -157,6 +173,7 @@ export function Suggested(props: SuggestedProp) {
       setError("");
       setSuccess("");
       setContent(null);
+      setLoader(false);
     }
   }, [props.id]);
 
@@ -181,18 +198,21 @@ export function Suggested(props: SuggestedProp) {
                 icon="pi pi-times"
                 onClick={deleteSuggestion}
                 className="p-button-text"
+                loading={loader}
               />
               <Button
                 label="Проверить"
                 icon="pi pi-question-circle"
                 onClick={checkCulture}
                 className="p-button-text"
+                loading={loader}
               />
               <Button
                 label="Принять"
                 icon="pi pi-send"
                 onClick={acceptSuggestion}
                 autoFocus
+                loading={loader}
               />
             </div>
           ) : null

@@ -27,5 +27,11 @@ export const fetchApi = (
   //@ts-ignore
   init.headers["Authorization"] = `Bearer ${user.token}`;
 
-  return fetch(input, init);
+  return fetch(input, init).then((response) => {
+    if (response.status === 301 || response.status === 302) {
+      window.location.reload();
+    }
+
+    return response;
+  });
 };

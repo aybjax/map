@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { User } from "../utils/user";
 import { useNavigate } from "react-router";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
@@ -14,6 +14,9 @@ import { Header } from "../components/Header.tsx";
 import { Sidebar } from "primereact/sidebar";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Button } from "primereact/button";
+import "./statics/Home.css";
+import { Toast } from "primereact/toast";
+import { ScrollPanel } from "primereact/scrollpanel";
 
 // const _MapBox = {
 //   accessToken:
@@ -24,6 +27,7 @@ const coordinates = {};
 
 export function Home() {
   const navigate = useNavigate();
+  const toast = useRef(null);
 
   const [map, setMap] = useState(null);
 
@@ -33,6 +37,8 @@ export function Home() {
   const [messagesVisible, setMessagesVisible] = useState(false);
   const [messages, setMessages] = useState<any>([]);
   const [retrievingMessage, setRetrievingMessage] = useState(false);
+  const [seedLoad, setSeedLoad] = useState(false);
+  const [pageLoad, setPageLoad] = useState(false);
 
   const pan = (id: number) => {
     if (!id) return;
@@ -51,11 +57,93 @@ export function Home() {
   };
 
   const initLayers = () => {
+    setPageLoad(true);
     setLayers(null);
-    fetchApi("field")
+    return fetchApi("field")
       .then((response) => response.json())
       .then((fields) => {
         setLayers(fields);
+        setPageLoad(false);
+
+        return;
+      })
+      .catch((_) => {
+        setPageLoad(false);
+      });
+  };
+
+  const seedFields = () => {
+    setSeedLoad(true);
+    fetchApi("/field/seed", {
+      method: "post",
+    })
+      .then((response) => response.json())
+      .then((body) => {
+        if (body.success) {
+          initLayers()
+            .then((_) => {
+              setSeedLoad(false);
+              setMessagesVisible(false);
+              if (toast.current) {
+                //@ts-ignore
+                toast.current.show({
+                  severity: "success",
+                  summary: body.success,
+                  life: 3000,
+                });
+              }
+            })
+            .catch((_) => {
+              setSeedLoad(false);
+            });
+        } else if (body.error) {
+          setSeedLoad(false);
+          if (toast.current) {
+            //@ts-ignore
+            toast.current.show({
+              severity: "error",
+              summary: body.error,
+              life: 3000,
+            });
+          }
+        }
+      });
+  };
+
+  const resetFields = () => {
+    setSeedLoad(true);
+    fetchApi("/field/reset", {
+      method: "post",
+    })
+      .then((response) => response.json())
+      .then((body) => {
+        if (body.success) {
+          initLayers()
+            .then((_) => {
+              setMessagesVisible(false);
+              if (toast.current) {
+                //@ts-ignore
+                toast.current.show({
+                  severity: "success",
+                  summary: body.success,
+                  life: 3000,
+                });
+              }
+            })
+            .catch((_) => {
+              setSeedLoad(false);
+            });
+        } else if (body.error) {
+          if (toast.current) {
+            //@ts-ignore
+            toast.current.show({
+              severity: "error",
+              summary: body.error,
+              life: 3000,
+            });
+          }
+        }
+        setSeedLoad(false);
       });
   };
 
@@ -91,51 +179,59 @@ export function Home() {
   return (
     <div>
       <Header showMessages={() => setMessagesVisible(true)} />
-      <MapContainer
-        style={{ width: "100%", height: "90vh" }}
-        zoom={10}
-        center={[51, 71]}
-        whenCreated={setMap}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {layers?.type && (
-          <GeoJSON
-            data={layers}
-            // @ts-ignore
-            onEachFeature={(field, layer) => {
-              // layer.bindPopup("hello");
-              coordinates[field.properties.id] = layer.getBounds().getCenter();
-              layer.options.fillOpacity = 1;
-              const color = field.properties.color
-                ? field.properties.color
-                : "#CADDE3";
-              layer.options.fillColor = color;
+      {pageLoad ? (
+        <div className="flex items-center justify-center">
+          <ProgressSpinner style={{ width: "50px", height: "50px" }} />
+        </div>
+      ) : (
+        <MapContainer
+          style={{ width: "100%", height: "90vh" }}
+          zoom={10}
+          center={[51, 71]}
+          whenCreated={setMap}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {layers?.type && (
+            <GeoJSON
+              data={layers}
+              // @ts-ignore
+              onEachFeature={(field, layer) => {
+                // layer.bindPopup("hello");
+                coordinates[field.properties.id] = layer
+                  .getBounds()
+                  .getCenter();
+                layer.options.fillOpacity = 1;
+                const color = field.properties.color
+                  ? field.properties.color
+                  : "#CADDE3";
+                layer.options.fillColor = color;
 
-              layer.on({
-                click: (event) => {
-                  setId(event.target.feature.properties.id);
-                },
-                mouseover: (event) => {
-                  event.target.setStyle({
-                    fillColor: "yellow",
-                  });
-                },
-                mouseout: (event) => {
-                  const color = field.properties.color
-                    ? field.properties.color
-                    : "#CADDE3";
-                  event.target.setStyle({
-                    fillOpacity: 1,
-                    fillColor: color,
-                  });
-                },
-              });
-            }}
-          >
-            {/* <Popup>Hello</Popup> */}
-          </GeoJSON>
-        )}
-      </MapContainer>
+                layer.on({
+                  click: (event) => {
+                    setId(event.target.feature.properties.id);
+                  },
+                  mouseover: (event) => {
+                    event.target.setStyle({
+                      fillColor: "yellow",
+                    });
+                  },
+                  mouseout: (event) => {
+                    const color = field.properties.color
+                      ? field.properties.color
+                      : "#CADDE3";
+                    event.target.setStyle({
+                      fillOpacity: 1,
+                      fillColor: color,
+                    });
+                  },
+                });
+              }}
+            >
+              {/* <Popup>Hello</Popup> */}
+            </GeoJSON>
+          )}
+        </MapContainer>
+      )}
       <Confirm id={id} reset={() => setId(0)} initLayers={initLayers} />
       <Suggested
         id={suggestedId}
@@ -147,44 +243,68 @@ export function Home() {
         position="right"
         onHide={() => setMessagesVisible(false)}
       >
-        <h3 className="mb-4 font-bold">Запросы на посадку</h3>
-        {retrievingMessage ? (
-          <div className="flex items-center justify-center">
-            <ProgressSpinner style={{ width: "50px", height: "50px" }} />
-          </div>
-        ) : messages.length > 0 ? (
-          messages.map((message) => (
-            <div className="flex mb-6" key={message.id}>
-              <div
-                className="flex-grow p-1 hover:bg-gray-100"
-                onClick={() => {
-                  setSuggestedId(message.id);
-                  setMessagesVisible(false);
-                }}
-              >
-                <div>
-                  <span className="font-medium">Author:</span>{" "}
-                  {message?.user?.username ?? "-"}
-                </div>
-                <div>
-                  <span className="font-medium">Посадка:</span>{" "}
-                  {message?.culture?.name ?? "-"}
-                </div>
+        <div className="flex flex-col height100">
+          <ScrollPanel className="flex-grow overflow-y-auto">
+            <h3 className="mb-4 font-bold">Запросы на посадку</h3>
+            {retrievingMessage ? (
+              <div className="flex items-center justify-center">
+                <ProgressSpinner style={{ width: "50px", height: "50px" }} />
               </div>
+            ) : messages.length > 0 ? (
+              messages.map((message) => (
+                <div className="flex mb-6" key={message.id}>
+                  <div
+                    className="flex-grow p-1 hover:bg-gray-100"
+                    onClick={() => {
+                      setSuggestedId(message.id);
+                      setMessagesVisible(false);
+                    }}
+                  >
+                    <div>
+                      <span className="font-medium">Author:</span>{" "}
+                      {message?.user?.username ?? "-"}
+                    </div>
+                    <div>
+                      <span className="font-medium">Посадка:</span>{" "}
+                      {message?.culture?.name ?? "-"}
+                    </div>
+                  </div>
 
-              <div>
-                <Button
-                  icon="pi pi-angle-double-down"
-                  className="p-button-rounded p-button-text p-button-sm"
-                  onClick={() => pan(message.field_id)}
-                />
-              </div>
+                  <div>
+                    <Button
+                      icon="pi pi-angle-double-down"
+                      className="p-button-rounded p-button-text p-button-sm"
+                      onClick={() => pan(message.field_id)}
+                    />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>Нет запросов на посадку</p>
+            )}
+          </ScrollPanel>
+          {User.getInstance().is_admin && (
+            <div className="flex-none flex">
+              <Button
+                label="Случайно"
+                icon="pi pi-undo"
+                className="p-button-text flex-grow"
+                onClick={seedFields}
+                loading={seedLoad}
+              />
+
+              <Button
+                label="Очистить"
+                icon="pi pi-times"
+                className="p-button-text flex-grow"
+                onClick={resetFields}
+                loading={seedLoad}
+              />
             </div>
-          ))
-        ) : (
-          <p>Нет запросов на посадку</p>
-        )}
+          )}
+        </div>
       </Sidebar>
+      <Toast ref={toast} />
     </div>
   );
 }

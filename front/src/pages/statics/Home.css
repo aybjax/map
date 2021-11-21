@@ -3,6 +3,10 @@
   height: calc(100vh - 60px);
 }
 
+.height100 {
+  height: 100%;
+}
+
 .locate-button {
   width: 100px;
 }

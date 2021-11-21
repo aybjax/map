@@ -67,7 +67,7 @@ class UserController extends Controller
 
         return response()->json([
             'token' => '',
-            'username' => 'Проверьте имя и пароль',
+            'error' => 'Проверьте имя и пароль',
         ], 400);
     }
 }

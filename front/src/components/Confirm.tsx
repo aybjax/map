@@ -50,10 +50,45 @@ export function Confirm(props: ConfirmProp) {
   const [cultureId, setCultureId] = useState<number>(0);
   const [cultureComment, setCultureComment] = useState<string>("");
   const [prep, setPrep] = useState<PrepResponse>({ preps: [] });
+  const [loader, setLoader] = useState(false);
+
+  const deleteCulture = async (field_id: number) => {
+    setLoader(true);
+    if (User.getInstance().is_admin) {
+      const response = await fetchApi("/field/" + field_id, {
+        method: "delete",
+      });
+
+      if (response.ok) {
+        try {
+          const body = await response.json();
+
+          if (body.success) {
+            if (toast.current) {
+              //@ts-ignore
+              toast.current.show({
+                severity: "success",
+                summary: body.success,
+                life: 3000,
+              });
+            }
+
+            props.initLayers();
+            setTimeout(props.reset, 1000);
+          }
+        } catch (_) {
+          setLoader(false);
+        }
+      } else {
+        setLoader(false);
+      }
+    }
+  };
 
   const checkCulture = () => {
     setError("");
     setSuccess("");
+    setLoader(true);
     const payload = { field_id: props.id, culture_id: cultureId };
     fetchApi("culture-check", {
       method: "post",
@@ -61,18 +96,23 @@ export function Confirm(props: ConfirmProp) {
     })
       .then((response) => response.json())
       .then((response: { success?: string; error?: string }) => {
+        setLoader(false);
         if (response.error) {
           setError(response.error);
         }
         if (response.success) {
           setSuccess(response.success);
         }
+      })
+      .catch((_) => {
+        setLoader(false);
       });
   };
 
   const suggestCulture = () => {
     setError("");
     setSuccess("");
+    setLoader(true);
 
     const payload = {
       field_id: props.id,
@@ -105,7 +145,12 @@ export function Confirm(props: ConfirmProp) {
           }
 
           setTimeout(props.reset, 1000);
+        } else {
+          setLoader(false);
         }
+      })
+      .catch((_) => {
+        setLoader(false);
       });
   };
 
@@ -136,6 +181,7 @@ export function Confirm(props: ConfirmProp) {
       setCultureComment("");
       setError("");
       setSuccess("");
+      setLoader(false);
     }
   }, [props.id]);
 
@@ -171,17 +217,30 @@ export function Confirm(props: ConfirmProp) {
         footer={
           response.fetched ? (
             <div className="animate__animated animate__zoomIn">
+              {User.getInstance().is_admin && (
+                <Button
+                  label="Удалить"
+                  icon="pi pi-times"
+                  onClick={() => {
+                    deleteCulture(props.id);
+                  }}
+                  className="p-button-text"
+                  loading={loader}
+                />
+              )}
               <Button
                 label="Проверить"
                 icon="pi pi-question-circle"
                 onClick={checkCulture}
                 className="p-button-text"
+                loading={loader}
               />
               <Button
                 label="Отправить"
                 icon="pi pi-send"
                 onClick={suggestCulture}
                 autoFocus
+                loading={loader}
               />
             </div>
           ) : null

@@ -6,7 +6,7 @@ import { classNames } from "primereact/utils";
 import { Button } from "primereact/button";
 import { fetchApi } from "../utils/fetch";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { User } from "../utils/user";
 import { Toast } from "primereact/toast";
 import { Password } from "primereact/password";
@@ -20,6 +20,7 @@ interface FieldType {
 export function Register() {
   const navigate = useNavigate();
   const toast = useRef(null);
+  const [loader, setLoader] = useState(false);
 
   useEffect(() => {
     const user = User.getInstance();
@@ -60,6 +61,7 @@ export function Register() {
       return errors;
     },
     onSubmit: async (data: FieldType) => {
+      setLoader(true);
       let response;
       try {
         response = await fetchApi("/register", {
@@ -67,6 +69,7 @@ export function Register() {
           body: JSON.stringify(data),
         });
       } catch (e) {
+        setLoader(false);
         return;
       }
 
@@ -87,6 +90,8 @@ export function Register() {
 
         return;
       }
+
+      setLoader(false);
 
       const errors: Partial<FieldType> = await response.json();
 
@@ -182,7 +187,7 @@ export function Register() {
             </label>
             {getFormErrorMessage("password2")}
           </div>
-          <Button label="Регистрироваться" />
+          <Button label="Регистрироваться" loading={loader} />
           <Link to={{ pathname: "/login" }} className="mt-6">
             Войти
           </Link>

@@ -5,11 +5,58 @@ namespace App\Http\Controllers;
 use App\Models\Field;
 use Illuminate\Http\Request;
 use App\Helpers\CultureStrategy;
+use App\Models\Culture;
 use Illuminate\Http\JsonResponse;
 use App\Models\CultureField;
+use Illuminate\Support\Facades\DB;
 
 class FieldController extends Controller
 {
+    public function seedFields(Request $request): JsonResponse
+    {
+        if(! $request->user()->is_admin) {
+            return response()->json([
+                'error' => 'У Вас нет прав'
+            ]);
+        }
+
+        $culture_ids = Culture::select('id')->get();
+        $culture_count = $culture_ids->count();
+        $fields = Field::without('culture')->get();
+
+        DB::transaction(function () use(&$fields, &$culture_ids, $culture_count) {
+            foreach($fields as $field) {
+                if(! $field->culture_id) {
+                    $random = random_int(0, $culture_count - 1);
+                    $field->culture_id = $culture_ids[$random]->id;
+                    $field->save();
+                }
+            }
+        });
+
+        return response()->json([
+            'success' => 'Все поля случайно заполнены'
+        ]);
+    }
+
+    public function resetFields(Request $request): JsonResponse
+    {
+        if(! $request->user()->is_admin) {
+            return response()->json([
+                'error' => 'У Вас нет прав'
+            ]);
+        }
+
+        DB::table('fields')->update([
+            'culture_id' => null,
+            'comment' => null,
+        ]);
+
+        return response()->json([
+            'success' => 'Все поля почищены',
+        ]);
+    }
+
     /**
      *  Display a listing of the resource.
      * @return JsonResponse
@@ -28,9 +75,7 @@ class FieldController extends Controller
             'features' => Field::all(),
         ]);
     }
-
-
-
+    
     /**
      * Summary of suggestCulture
      * @param Request $request
@@ -80,7 +125,7 @@ class FieldController extends Controller
         ]);
 
         return response()->json([
-            'success' => 'Запрос отправлен админу',
+            'success' => 'Запрос отправлен администратору',
         ]);
     }
 
@@ -104,6 +149,17 @@ class FieldController extends Controller
     {
         $response = $field->properties;
         return response()->json($response);
+    }
+
+    public function destroy(field $field): JsonResponse
+    {
+        $field->culture_id = null;
+        $field->comment = null;
+        $field->save();
+
+        return response()->json([
+            'success' => 'Участок почитен'
+        ]);
     }
 
     public function getSuggested(CultureField $culture_field): JsonResponse

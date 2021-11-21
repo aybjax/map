@@ -7,7 +7,7 @@ import { Button } from "primereact/button";
 import { fetchApi } from "../utils/fetch";
 import { Link, useNavigate } from "react-router-dom";
 import { User } from "../utils/user";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import { Password } from "primereact/password";
 
@@ -19,6 +19,9 @@ interface FieldType {
 export function Login() {
   const navigate = useNavigate();
   const toast = useRef(null);
+
+  const [error, setError] = useState("");
+  const [loader, setLoader] = useState(false);
 
   useEffect(() => {
     const user = User.getInstance();
@@ -47,6 +50,7 @@ export function Login() {
       return errors;
     },
     onSubmit: async (data: FieldType) => {
+      setLoader(true);
       let response;
       try {
         response = await fetchApi("/login", {
@@ -54,6 +58,7 @@ export function Login() {
           body: JSON.stringify(data),
         });
       } catch (e) {
+        setLoader(false);
         return;
       }
 
@@ -85,7 +90,14 @@ export function Login() {
 
         formik.resetForm();
         return;
+      } else {
+        const body = await response.json();
+        if (body.error) {
+          setError(body.error);
+        }
       }
+
+      setLoader(false);
 
       const errors: Partial<FieldType> = await response.json();
 
@@ -114,6 +126,11 @@ export function Login() {
           onSubmit={formik.handleSubmit}
           className="flex flex-col items-stretch"
         >
+          {error && (
+            <div className="flex justify-center text-red-700 mb-3 -mt-3">
+              {error}
+            </div>
+          )}
           <div className="p-float-label mb-6">
             <InputText
               id="username"
@@ -157,7 +174,7 @@ export function Login() {
             </label>
             {getFormErrorMessage("password")}
           </div>
-          <Button label="Войти" />
+          <Button label="Войти" loading={loader} />
           <Link to={{ pathname: "/register" }} className="mt-6">
             Регистрироваться
           </Link>
