@@ -21,6 +21,6 @@ class Culture extends Model
 
     public function cultureField()
     {
-        return $this->hasMany(CultureField::class);
+        return $this->hasMany(SuggestionCultureField::class);
     }
 }

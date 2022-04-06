@@ -6,6 +6,7 @@ use App\Types\GeoData;
 use App\Types\PropertyData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Auth;
 
 class Field extends Model
 {
@@ -17,25 +18,66 @@ class Field extends Model
     protected $casts = [
         'geometry' => 'array',
     ];
-    protected $with = [
-        'culture',
-    ];
 
     public function setPropertiesAttribute(PropertyData $data)
     {
+        $current_year = intval(request()->header('X_YEAR', 2022));
+        $planted = $this->plantations->first(function(PlantedCultureField $planted) use($current_year) {
+            $planted->year === $current_year;
+        });
+
         $this->attributes['id'] = $data->id ?? null;
         $this->attributes['culture_id'] = $data->planted_id;
         $this->attributes['comment'] = $data->comment;
+        
+        if($planted) {
+            $planted->culture_id = $data->planted_id;
+            $planted->comment = $data->comment;
+            $planted->year = $data->year;
+        }
     }
 
+    /**
+     * This year or last year
+     *
+     * @return PropertyData
+     */
     public function getPropertiesAttribute(): PropertyData
     {
+        $current_year = intval(request()->header('X_YEAR', 2022));
+        $planted = PlantedCultureField::where('year', $current_year)
+                    ->where('field_id', $this->id)->first();
+
         return new PropertyData(
             id: $this->attributes['id'],
-            planted: $this->culture?->name ?? '',
-            planted_id: $this->attributes['culture_id'],
-            comment: $this->attributes['comment'],
-            color: $this->culture?->color ?? '',
+            planted: $planted->culture?->name ?? '',
+            planted_id: $planted?->culture_id ?? 0,
+            comment: $planted?->comment ?? '',
+            color: $planted?->culture?->color ?? '',
+            year: $planted?->year,
+        );
+    }
+
+    
+
+    /**
+     * This year or last year
+     *
+     * @return PropertyData
+     */
+    public function getLastPropertiesAttribute(): PropertyData
+    {
+        $current_year = intval(request()->header('X_YEAR', 2022));
+        $planted = PlantedCultureField::where('year', $current_year-1)
+                    ->where('field_id', $this->id)->first();
+
+        return new PropertyData(
+            id: $this->attributes['id'],
+            planted: $planted->culture?->name ?? '',
+            planted_id: $planted?->culture_id ?? 0,
+            comment: $planted?->comment ?? '',
+            color: $planted?->culture?->color ?? '',
+            year: $planted?->year,
         );
     }
 
@@ -54,13 +96,13 @@ class Field extends Model
         );
     }
 
-    public function culture()
+    public function suggestions()
     {
-        return $this->belongsTo(Culture::class);
+        return $this->belongsTo(SuggestionCultureField::class);
     }
 
-    public function cultureField()
+    public function plantations()
     {
-        return $this->hasMany(CultureField::class);
+        return $this->hasMany(PlantedCultureField::class);
     }
 }

@@ -4,7 +4,7 @@ export const fetchApi = (
   input: RequestInfo,
   init: RequestInit | null = null
 ): Promise<Response> => {
-  const urlBase = "http://localhost:8000/api/";
+  const urlBase = "http://tse-ground-map.ru/api/";
 
   if (typeof input === "string") {
     if (input.startsWith("/")) {
@@ -26,6 +26,8 @@ export const fetchApi = (
 
   //@ts-ignore
   init.headers["Authorization"] = `Bearer ${user.token}`;
+  //@ts-ignore
+  init.headers["X-YEAR"] = user.year;
 
   return fetch(input, init).then((response) => {
     if (response.status === 301 || response.status === 302) {

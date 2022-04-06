@@ -13,11 +13,21 @@ class CreateCultureFieldsTable extends Migration
      */
     public function up()
     {
-        Schema::create('culture_fields', function (Blueprint $table) {
+        Schema::create('suggestion_culture_fields', function (Blueprint $table) {
             $table->id();
             $table->foreignId('culture_id')->nullable();
             $table->foreignId('field_id')->nullable();
+            $table->integer('year')->nullable();
             $table->foreignId('user_id')->nullable();
+            $table->string('comment')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('planted_culture_fields', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('culture_id')->nullable();
+            $table->foreignId('field_id')->nullable();
+            $table->integer('year')->nullable();
             $table->string('comment')->nullable();
             $table->timestamps();
         });
@@ -30,6 +40,7 @@ class CreateCultureFieldsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('culture_fields');
+        Schema::dropIfExists('suggestion_culture_fields');
+        Schema::dropIfExists('planted_culture_fields');
     }
 }

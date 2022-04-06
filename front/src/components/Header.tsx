@@ -1,13 +1,19 @@
 import "./Header.css";
 import { Button } from "primereact/button";
 import { User } from "../utils/user";
+import { useAppSelector } from "../store/hooks";
+import { Dropdown } from 'primereact/dropdown';
+import { useState } from "react";
 
 interface HomeProps {
   showMessages: () => void;
+  setYear: (n: number) => void;
+  year: number;
 }
 
 export const Header = (props: HomeProps) => {
   const user = User.getInstance();
+
   return (
     <div className="header flex items-center">
       <div>
@@ -16,6 +22,10 @@ export const Header = (props: HomeProps) => {
         </span>
         <span className="ml-2 select-none">
           ({user.is_admin ? "администратор" : "пользователь"})
+        </span>
+        <span className="ml-2 select-none">
+          <Dropdown
+            value={props.year} options={[2022, 2023, 2024, 2025, 2026, 2027]} onChange={(e) => props.setYear(e.target.value)} placeholder="Выберите год" />
         </span>
       </div>
       <div className="flex-grow"></div>

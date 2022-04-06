@@ -2,6 +2,7 @@ import { Card } from "primereact/card";
 import "./statics/Login.css";
 import { InputText } from "primereact/inputtext";
 import { useFormik } from "formik";
+//@ts-ignore
 import { classNames } from "primereact/utils";
 import { Button } from "primereact/button";
 import { fetchApi } from "../utils/fetch";
@@ -73,6 +74,7 @@ export function Login() {
           token,
           is_admin,
           username,
+          year: user.year,
         };
 
         if (toast.current) {

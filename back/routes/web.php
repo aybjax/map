@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,6 +13,15 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('database/seed', function() {
+    echo Artisan::call('db:seed');
+    return;
+});
+Route::get('database/migrate', function() {
+    echo Artisan::call('migrate');
+    return;
+});
+
 Route::get('{catchall}', function() {
     return view('app');
 })->where('catchall', '.*');

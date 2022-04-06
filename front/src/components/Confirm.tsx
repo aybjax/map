@@ -8,6 +8,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import "./Confirm.css";
 import { Toast } from "primereact/toast";
 import { User } from "../utils/user";
+import { InputNumber } from 'primereact/inputnumber';
 
 interface PrepResponse {
   preps: {
@@ -27,6 +28,7 @@ interface FieldResponse {
   planted?: string;
   comment?: string;
   confirmed?: false;
+  year?: number;
 }
 
 interface FieldResponseFetched extends FieldResponse {
@@ -49,6 +51,7 @@ export function Confirm(props: ConfirmProp) {
   const [success, setSuccess] = useState<string>("");
   const [cultureId, setCultureId] = useState<number>(0);
   const [cultureComment, setCultureComment] = useState<string>("");
+  const [year, setYear] = useState<number>(0);
   const [prep, setPrep] = useState<PrepResponse>({ preps: [] });
   const [loader, setLoader] = useState(false);
 
@@ -89,7 +92,7 @@ export function Confirm(props: ConfirmProp) {
     setError("");
     setSuccess("");
     setLoader(true);
-    const payload = { field_id: props.id, culture_id: cultureId };
+    const payload = { field_id: props.id, culture_id: cultureId, year };
     fetchApi("culture-check", {
       method: "post",
       body: JSON.stringify(payload),
@@ -118,6 +121,7 @@ export function Confirm(props: ConfirmProp) {
       field_id: props.id,
       culture_id: cultureId,
       comment: cultureComment,
+      year: year,
     };
     fetchApi("culture-suggest", {
       method: "post",
@@ -256,6 +260,10 @@ export function Confirm(props: ConfirmProp) {
             {error && (
               <div className="flex justify-center text-red-700">{error}</div>
             )}
+            <div className="mt-4">
+              Год посадки:
+              <div>{response?.year ? response.year : "-"}</div>
+            </div>
             <div className="mt-4">
               Культура:
               <div>{response?.planted?.length ? response.planted : "-"}</div>

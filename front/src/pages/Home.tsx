@@ -28,6 +28,7 @@ const coordinates = {};
 export function Home() {
   const navigate = useNavigate();
   const toast = useRef(null);
+  const user = User.getInstance();
 
   const [map, setMap] = useState(null);
 
@@ -39,6 +40,12 @@ export function Home() {
   const [retrievingMessage, setRetrievingMessage] = useState(false);
   const [seedLoad, setSeedLoad] = useState(false);
   const [pageLoad, setPageLoad] = useState(false);
+  const [year, setYear] = useState(user.year)
+  const renewLayers = (n: number) => {
+    setYear(n)
+    user.year = n
+    initLayers()
+  }
 
   const pan = (id: number) => {
     if (!id) return;
@@ -56,9 +63,10 @@ export function Home() {
     }, 500);
   };
 
-  const initLayers = () => {
+  function initLayers() {
     setPageLoad(true);
     setLayers(null);
+
     return fetchApi("field")
       .then((response) => response.json())
       .then((fields) => {
@@ -178,7 +186,7 @@ export function Home() {
   // @ts-ignore
   return (
     <div>
-      <Header showMessages={() => setMessagesVisible(true)} />
+      <Header showMessages={() => setMessagesVisible(true)} year = {year} setYear={renewLayers} />
       {pageLoad ? (
         <div className="flex items-center justify-center">
           <ProgressSpinner style={{ width: "50px", height: "50px" }} />
@@ -188,6 +196,7 @@ export function Home() {
           style={{ width: "100%", height: "90vh" }}
           zoom={10}
           center={[51, 71]}
+          //@ts-ignore
           whenCreated={setMap}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -197,24 +206,31 @@ export function Home() {
               // @ts-ignore
               onEachFeature={(field, layer) => {
                 // layer.bindPopup("hello");
+                // @ts-ignore
                 coordinates[field.properties.id] = layer
+                  //@ts-ignore
                   .getBounds()
                   .getCenter();
+                //@ts-ignore
                 layer.options.fillOpacity = 1;
                 const color = field.properties.color
                   ? field.properties.color
                   : "#CADDE3";
+                //@ts-ignore
                 layer.options.fillColor = color;
 
-                layer.on({
+                layer.on({    
+                  // @ts-ignore
                   click: (event) => {
                     setId(event.target.feature.properties.id);
                   },
+                  // @ts-ignore
                   mouseover: (event) => {
                     event.target.setStyle({
                       fillColor: "yellow",
                     });
                   },
+                  // @ts-ignore
                   mouseout: (event) => {
                     const color = field.properties.color
                       ? field.properties.color
@@ -251,6 +267,7 @@ export function Home() {
                 <ProgressSpinner style={{ width: "50px", height: "50px" }} />
               </div>
             ) : messages.length > 0 ? (
+              // @ts-ignore
               messages.map((message) => (
                 <div className="flex mb-6" key={message.id}>
                   <div
@@ -280,7 +297,7 @@ export function Home() {
                 </div>
               ))
             ) : (
-              <p>Нет запросов на посадку</p>
+              <p>Нет запросов на посадку на этот год</p>
             )}
           </ScrollPanel>
           {User.getInstance().is_admin && (

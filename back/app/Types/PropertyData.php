@@ -11,6 +11,7 @@ class PropertyData implements JsonSerializable
         public ?int $planted_id = 0,
         public ?string $comment = '',
         public ?string $color = '',
+        public ?int $year = null,
     ) {}
 
     public function jsonSerialize() {
@@ -20,6 +21,7 @@ class PropertyData implements JsonSerializable
             'planted_id' => $this->planted_id,
             'comment' => $this->comment,
             'color' => $this->color,
+            'year' => $this->year,
         ];
     }
 }

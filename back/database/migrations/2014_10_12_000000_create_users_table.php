@@ -18,6 +18,7 @@ class CreateUsersTable extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->boolean('is_admin')->default(0);
+            $table->integer('current_year')->default(2022);
             $table->timestamps();
         });
     }

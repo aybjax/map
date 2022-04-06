@@ -1,5 +1,6 @@
 interface TokenObject {
   username: string;
+  year: number;
   token: string;
   is_admin: boolean;
   tokenExpiration: number;
@@ -13,6 +14,7 @@ export class User {
   private _tokenKey: string = "sanctumToken";
   private _is_admin = false;
   private _username = "";
+  private _year = 2022;
 
   private constructor(token: string, tokenExpirationInHours: number) {
     this._token = token;
@@ -49,6 +51,7 @@ export class User {
       }
 
       if (tokenObject?.token && tokenObject.tokenExpiration) {
+        User._user._year = tokenObject.year ?? 2022;
         User._user._token = tokenObject.token;
         User._user._is_admin = tokenObject?.is_admin ?? false;
         User._user._username = tokenObject?.username ?? "";
@@ -73,6 +76,7 @@ export class User {
       }
 
       if (tokenObject?.token && tokenObject.tokenExpiration) {
+        User._user._year = tokenObject.year ?? 2022;
         User._user._token = tokenObject.token;
         User._user._is_admin = tokenObject?.is_admin ?? false;
         User._user._username = tokenObject?.username ?? "";
@@ -97,6 +101,7 @@ export class User {
       }
 
       if (tokenObject?.token && tokenObject.tokenExpiration) {
+        User._user._year = tokenObject.year ?? 2022;
         User._user._token = tokenObject.token;
         User._user._is_admin = tokenObject?.is_admin ?? false;
         User._user._username = tokenObject?.username ?? "";
@@ -110,19 +115,70 @@ export class User {
     return User._user._username;
   }
 
+  get year() {
+    if (!User._user._year) {
+      const tokenJson = localStorage.getItem(User._user._tokenKey);
+
+      let tokenObject: Partial<TokenObject> = {};
+
+      if (tokenJson) {
+        tokenObject = JSON.parse(tokenJson);
+      }
+
+      if (tokenObject?.token && tokenObject.tokenExpiration) {
+        User._user._year = tokenObject.year ?? 2022;
+        User._user._token = tokenObject.token;
+        User._user._is_admin = tokenObject?.is_admin ?? false;
+        User._user._username = tokenObject?.username ?? "";
+        User._user._tokenExpiration = tokenObject.tokenExpiration;
+      } else {
+        localStorage.removeItem(User._user._tokenKey);
+        return 0;
+      }
+    }
+
+    return User._user._year;
+  }
+
+  set year(year: number) {
+    User._user._year = year;
+
+    (async function () {
+      const tokenJson = localStorage.getItem(User._user._tokenKey);
+
+      let tokenObject: Partial<TokenObject> = {};
+
+      if (tokenJson) {
+        tokenObject = JSON.parse(tokenJson);
+      }
+
+      if (tokenObject?.token && tokenObject.tokenExpiration) {
+        tokenObject.year = year;
+
+        localStorage.setItem(User._user._tokenKey, JSON.stringify(tokenObject));
+      } else {
+        localStorage.removeItem(User._user._tokenKey);
+        return 0;
+      }
+    })()
+  }
+
   set userinfo(payload: {
     username: string;
+    year: number;
     token: string;
     is_admin: boolean;
   }) {
     User._user._token = payload.token;
     User._user._username = payload.username;
+    User._user._year = payload.year ?? 2022;
     User._user._is_admin = payload.is_admin;
     User._user._tokenExpiration =
       new Date().getTime() + User._user._tokenLiveTime;
 
     const tokenObject: TokenObject = {
       username: User._user._username,
+      year: User._user._year ?? 2022,
       token: User._user._token,
       is_admin: User._user._is_admin,
       tokenExpiration: User._user._tokenExpiration,
