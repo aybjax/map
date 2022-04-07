@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('database/clear', function() {
+    echo Artisan::call('cache:clear');
+    echo Artisan::call('config:clear');
+    echo Artisan::call('route:clear');
+    return;
+});
 Route::get('database/seed', function() {
     echo Artisan::call('db:seed');
     return;
